@@ -9,4 +9,6 @@ import java.util.List;
 public interface TrainingSessionRepository extends MongoRepository<TrainingSession, String> {
 
     List<TrainingSession> findByDateBetween(LocalDateTime from, LocalDateTime to);
+
+    void deleteByDateBetween(LocalDateTime from, LocalDateTime to);
 }

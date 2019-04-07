@@ -4,5 +4,5 @@ public enum Goal {
 
     STRENGTH,
     MUSCLE,
-    FAT_REDUCE;
+    FAT_REDUCE
 }

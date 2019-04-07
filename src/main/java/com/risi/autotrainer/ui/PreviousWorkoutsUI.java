@@ -13,6 +13,8 @@ import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Label;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.data.renderer.NativeButtonRenderer;
+import com.vaadin.flow.data.renderer.Renderer;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -27,9 +29,10 @@ class PreviousWorkoutsUI extends VerticalLayout {
     private Button search;
     private VerticalLayout contentLayout = new VerticalLayout();
     private List<TrainingSession> trainingSessions;
+    private TrainingSessionService trainingSessionService;
 
     PreviousWorkoutsUI(TrainingSessionService trainingSessionService) {
-
+        this.trainingSessionService = trainingSessionService;
         HorizontalLayout selectorLayout = new HorizontalLayout();
         add(selectorLayout);
 
@@ -77,12 +80,39 @@ class PreviousWorkoutsUI extends VerticalLayout {
 
     private void loadTrainingSessions(List<TrainingSession> sessions) {
 
-        List<List<TrainingSession>> sessionsByDay = createSessionsListByDay(sessions);
-        DateTimeFormatter dtf = DateTimeFormatter.ISO_LOCAL_DATE;
+        var sessionsByDay = createSessionsListByDay(sessions);
+        var dtf = DateTimeFormatter.ISO_LOCAL_DATE;
 
         for (List<TrainingSession> daySession : sessionsByDay) {
+            var layout = new VerticalLayout();
+            var titleLayout = new HorizontalLayout();
             var grid = new Grid<>(ExerciseSet.class);
-            contentLayout.add(new Label(daySession.get(0).getDate().format(dtf)), grid);
+            grid.addColumn(new NativeButtonRenderer<>("Edit", clickedItem -> {
+                // todo edit the item
+            }));
+            grid.addColumn(new NativeButtonRenderer<>("Remove", clickedItem -> {
+                // todo remove the item
+            }));
+            var id = daySession.get(0).getDate().format(dtf);
+            layout.setId(id);
+
+            var deleteButton = new Button("Delete");
+            deleteButton.addClickListener((ComponentEventListener<ClickEvent<Button>>) buttonClickEvent -> {
+                var componentToRemove = contentLayout.getChildren().filter(component ->
+                        component.getId().isPresent() && component.getId().get().equals(id)).findFirst();
+                componentToRemove.ifPresent(component -> {
+                    var dateInfo = id.split("-");
+                    var dateOfTraining = LocalDate.of(Integer.parseInt(dateInfo[0]),
+                            Integer.parseInt(dateInfo[1]),
+                            Integer.parseInt(dateInfo[2]));
+                    trainingSessionService.deleteTrainingSession(dateOfTraining);
+                    contentLayout.remove(component);
+                });
+            });
+
+            titleLayout.add(new Label(id), deleteButton);
+            layout.add(titleLayout, grid);
+            contentLayout.add(layout);
 
             var exerciseSets = new ArrayList<ExerciseSet>();
             for (TrainingSession ts : daySession)
@@ -95,7 +125,6 @@ class PreviousWorkoutsUI extends VerticalLayout {
     private List<List<TrainingSession>> createSessionsListByDay(List<TrainingSession> sessions) {
 
         var returnList = new ArrayList<List<TrainingSession>>();
-
         LocalDateTime localDateTime = null;
         List<TrainingSession> sessionList = null;
         for (TrainingSession ts : sessions) {

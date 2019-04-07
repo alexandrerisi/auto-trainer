@@ -6,5 +6,5 @@ public enum BodyPreference {
     CHEST,
     GLUTS,
     LEGS,
-    SHOULDERS;
+    SHOULDERS
 }
