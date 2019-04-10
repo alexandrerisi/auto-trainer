@@ -30,6 +30,7 @@ class ProfileUI extends HorizontalLayout {
     private Button saveButton;
     private UserProfileService userProfileService;
     private boolean isProfileLoaded = false;
+    private UserProfile userProfile;
 
     ProfileUI(UserProfileService userProfileService) {
 
@@ -95,16 +96,18 @@ class ProfileUI extends HorizontalLayout {
         saveButton = new Button("Save");
         saveButton.setEnabled(false);
         saveButton.addClickListener((ComponentEventListener<ClickEvent<Button>>) event -> {
-            UserProfile profile = new UserProfile();
+            if (userProfile == null)
+                userProfile = new UserProfile();
             User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-            profile.setUserId(user.getId());
-            profile.setMale(gender.getValue().toLowerCase().equals("male"));
-            profile.setWeight(weight.getValue().floatValue());
-            profile.setHeight(height.getValue().floatValue());
-            profile.setAge(age.getValue().shortValue());
-            profile.setGoal(goal.getValue());
-            profile.setBodyPreference(bodyPreference.getValue());
-            userProfileService.saveUserProfile(profile);
+            userProfile.setUserId(user.getId());
+            userProfile.setMale(gender.getValue().toLowerCase().equals("male"));
+            userProfile.setWeight(weight.getValue().floatValue());
+            userProfile.setHeight(height.getValue().floatValue());
+            userProfile.setAge(age.getValue().shortValue());
+            userProfile.setGoal(goal.getValue());
+            userProfile.setBodyPreference(bodyPreference.getValue());
+            userProfileService.saveUserProfile(userProfile);
+            saveButton.setEnabled(false);
         });
         vl.add(saveButton);
         saveButtonActivation();
@@ -130,13 +133,13 @@ class ProfileUI extends HorizontalLayout {
         Optional<UserProfile> userProfile = userProfileService.getUserProfile(authenticatedUser.getId());
 
         if (userProfile.isPresent()) {
-            UserProfile profile = userProfile.get();
-            gender.setValue(profile.isMale() ? "Male" : "Female");
-            goal.setValue(profile.getGoal());
-            age.setValue((double) profile.getAge());
-            weight.setValue((double) profile.getWeight());
-            height.setValue((double) profile.getHeight());
-            bodyPreference.setValue(profile.getBodyPreference());
+            this.userProfile = userProfile.get();
+            gender.setValue(this.userProfile.isMale() ? "Male" : "Female");
+            goal.setValue(this.userProfile.getGoal());
+            age.setValue((double) this.userProfile.getAge());
+            weight.setValue((double) this.userProfile.getWeight());
+            height.setValue((double) this.userProfile.getHeight());
+            bodyPreference.setValue(this.userProfile.getBodyPreference());
         }
         isProfileLoaded = true;
         saveButton.setEnabled(false);

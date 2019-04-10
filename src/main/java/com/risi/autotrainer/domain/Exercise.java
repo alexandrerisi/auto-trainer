@@ -3,7 +3,7 @@ package com.risi.autotrainer.domain;
 public enum Exercise {
 
     SQUAT,
-    DEADLIFT,
+    DEAD_LIFT,
     OVERHEAD_PRESS,
     BENCH_PRESS,
     BARBELL_ROW,
@@ -13,9 +13,9 @@ public enum Exercise {
     CALF_RAISE,
     LEG_PRESS,
     LEG_EXTENSION,
-    SITTED_ROW,
+    SEATED_ROW,
     DIPS,
     BICEPS_CURL,
     TRICEPS_EXTENSION,
-    DUMBELL_ROW;
+    DUMBBELL_ROW
 }

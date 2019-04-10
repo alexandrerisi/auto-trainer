@@ -14,12 +14,12 @@ import com.vaadin.flow.component.html.Label;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.data.renderer.NativeButtonRenderer;
-import com.vaadin.flow.data.renderer.Renderer;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 class PreviousWorkoutsUI extends VerticalLayout {
@@ -67,7 +67,6 @@ class PreviousWorkoutsUI extends VerticalLayout {
             }
         });
         search.setEnabled(false);
-
         selectorLayout.add(from, to, search);
         add(selectorLayout);
         add(contentLayout);
@@ -87,13 +86,22 @@ class PreviousWorkoutsUI extends VerticalLayout {
             var layout = new VerticalLayout();
             var titleLayout = new HorizontalLayout();
             var grid = new Grid<>(ExerciseSet.class);
+            var exerciseSets = new ArrayList<ExerciseSet>();
+            var id = daySession.get(0).getDate().format(dtf);
+            var dateInfo = id.split("-");
+            var dateOfTraining = LocalDate.of(Integer.parseInt(dateInfo[0]),
+                    Integer.parseInt(dateInfo[1]),
+                    Integer.parseInt(dateInfo[2]));
             grid.addColumn(new NativeButtonRenderer<>("Edit", clickedItem -> {
-                // todo edit the item
+                var dialog = new EditSetDialog(clickedItem, trainingSessionService, exerciseSets, dateOfTraining, grid);
+                contentLayout.add(dialog);
+                dialog.open();
             }));
             grid.addColumn(new NativeButtonRenderer<>("Remove", clickedItem -> {
-                // todo remove the item
+                exerciseSets.remove(clickedItem);
+                trainingSessionService.updateTrainingSession(dateOfTraining, exerciseSets);
+                grid.getDataProvider().refreshItem(clickedItem);
             }));
-            var id = daySession.get(0).getDate().format(dtf);
             layout.setId(id);
 
             var deleteButton = new Button("Delete");
@@ -101,22 +109,26 @@ class PreviousWorkoutsUI extends VerticalLayout {
                 var componentToRemove = contentLayout.getChildren().filter(component ->
                         component.getId().isPresent() && component.getId().get().equals(id)).findFirst();
                 componentToRemove.ifPresent(component -> {
-                    var dateInfo = id.split("-");
-                    var dateOfTraining = LocalDate.of(Integer.parseInt(dateInfo[0]),
-                            Integer.parseInt(dateInfo[1]),
-                            Integer.parseInt(dateInfo[2]));
                     trainingSessionService.deleteTrainingSession(dateOfTraining);
                     contentLayout.remove(component);
                 });
             });
 
-            titleLayout.add(new Label(id), deleteButton);
+            var addSet = new Button("Add Set");
+            addSet.addClickListener((ComponentEventListener<ClickEvent<Button>>) buttonClickEvent -> {
+                var dialog = new EditSetDialog(null, trainingSessionService, exerciseSets, dateOfTraining, grid);
+                contentLayout.add(dialog);
+                dialog.open();
+            });
+
+            titleLayout.add(new Label(id), deleteButton, addSet);
             layout.add(titleLayout, grid);
             contentLayout.add(layout);
 
-            var exerciseSets = new ArrayList<ExerciseSet>();
-            for (TrainingSession ts : daySession)
+            for (TrainingSession ts : daySession) {
+                Collections.sort(ts.getSets());
                 exerciseSets.addAll(ts.getSets());
+            }
 
             grid.setItems(exerciseSets);
         }
@@ -127,6 +139,7 @@ class PreviousWorkoutsUI extends VerticalLayout {
         var returnList = new ArrayList<List<TrainingSession>>();
         LocalDateTime localDateTime = null;
         List<TrainingSession> sessionList = null;
+
         for (TrainingSession ts : sessions) {
             if (localDateTime == null || !localDateTime.isEqual(ts.getDate())) {
                 sessionList = new ArrayList<>();
