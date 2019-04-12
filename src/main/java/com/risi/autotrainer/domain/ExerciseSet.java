@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 public class ExerciseSet implements Comparable<ExerciseSet> {
 
     private short repetitions;
-    private float weight;
+    private double weight;
     private Exercise exercise;
 
     @Override

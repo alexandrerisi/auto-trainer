@@ -1,5 +1,6 @@
 package com.risi.autotrainer.ui;
 
+import com.risi.autotrainer.domain.Exercise;
 import com.risi.autotrainer.domain.ExerciseSet;
 import com.risi.autotrainer.domain.TrainingSession;
 import com.risi.autotrainer.service.TrainingSessionService;
@@ -8,11 +9,13 @@ import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.HasValue;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Label;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.data.renderer.NativeButtonRenderer;
 
 import java.time.LocalDate;
@@ -26,15 +29,17 @@ class PreviousWorkoutsUI extends VerticalLayout {
 
     private DatePicker to;
     private DatePicker from;
-    private Button search;
+    private Button searchByDate;
+    private ComboBox<Exercise> comboBoxExercise;
     private VerticalLayout contentLayout = new VerticalLayout();
     private List<TrainingSession> trainingSessions;
     private TrainingSessionService trainingSessionService;
+    private NumberField numberResults;
 
     PreviousWorkoutsUI(TrainingSessionService trainingSessionService) {
         this.trainingSessionService = trainingSessionService;
-        HorizontalLayout selectorLayout = new HorizontalLayout();
-        add(selectorLayout);
+        HorizontalLayout dateSelectorLayout = new HorizontalLayout();
+        add(dateSelectorLayout);
 
         from = new DatePicker();
         from.setMin(LocalDate.of(2019, 2, 1));
@@ -42,7 +47,8 @@ class PreviousWorkoutsUI extends VerticalLayout {
                 (HasValue.ValueChangeListener<AbstractField.ComponentValueChangeEvent<DatePicker, LocalDate>>) ev -> {
                     if (to.getValue() != null && !from.getValue().isBefore(to.getValue()))
                         to.setValue(null);
-                    to.setMin(from.getValue().plusDays(1));
+                    if (to.getValue() != null)
+                        to.setMin(from.getValue().plusDays(1));
                     searchButtonActivation();
                 });
         from.setLabel("From Day");
@@ -53,28 +59,50 @@ class PreviousWorkoutsUI extends VerticalLayout {
                 (HasValue.ValueChangeListener<AbstractField.ComponentValueChangeEvent<DatePicker, LocalDate>>) ev -> {
                     if (from.getValue() != null && !from.getValue().isBefore(to.getValue()))
                         from.setValue(null);
-                    from.setMax(to.getValue().minusDays(1));
+                    if (from.getValue() != null)
+                        from.setMax(to.getValue().minusDays(1));
                     searchButtonActivation();
                 });
         to.setLabel("To Day");
 
-        search = new Button("Search");
-        search.addClickListener((ComponentEventListener<ClickEvent<Button>>) event -> {
-            trainingSessions = trainingSessionService.getTrainingSessionByDate(from.getValue(), to.getValue());
+        searchByDate = new Button("Search By Date");
+        searchByDate.addClickListener((ComponentEventListener<ClickEvent<Button>>) event -> {
+            trainingSessions = trainingSessionService.getTrainingSessionByDate(
+                    from.getValue(), to.getValue(), numberResults.getValue().intValue());
             contentLayout.removeAll();
             if (trainingSessions != null) {
                 loadTrainingSessions(trainingSessions);
             }
         });
-        search.setEnabled(false);
-        selectorLayout.add(from, to, search);
-        add(selectorLayout);
-        add(contentLayout);
+        searchByDate.setEnabled(false);
+
+        dateSelectorLayout.add(from, to, searchByDate);
+
+        var exerciseSelectorLayout = new HorizontalLayout();
+        comboBoxExercise = new ComboBox<>("Exercise", Exercise.values());
+        Button searchByExercise = new Button("Search By Exercise");
+        searchByExercise.addClickListener((ComponentEventListener<ClickEvent<Button>>) buttonClickEvent -> {
+            if (comboBoxExercise.getValue() != null) {
+                contentLayout.removeAll();
+                loadTrainingSessions(trainingSessionService.getByExercise(
+                        comboBoxExercise.getValue(), numberResults.getValue().intValue()));
+            }
+        });
+        exerciseSelectorLayout.add(comboBoxExercise, searchByExercise);
+
+        numberResults = new NumberField("Number of training sessions showed.");
+        numberResults.setStep(1);
+        numberResults.setMax(20);
+        numberResults.setMin(1);
+        numberResults.setValue(5d);
+        numberResults.setHasControls(true);
+
+        add(dateSelectorLayout, exerciseSelectorLayout, numberResults, contentLayout);
     }
 
     private void searchButtonActivation() {
         if (from.getValue() != null && to.getValue() != null)
-            search.setEnabled(true);
+            searchByDate.setEnabled(true);
     }
 
     private void loadTrainingSessions(List<TrainingSession> sessions) {
@@ -93,14 +121,19 @@ class PreviousWorkoutsUI extends VerticalLayout {
                     Integer.parseInt(dateInfo[1]),
                     Integer.parseInt(dateInfo[2]));
             grid.addColumn(new NativeButtonRenderer<>("Edit", clickedItem -> {
-                var dialog = new EditSetDialog(clickedItem, trainingSessionService, exerciseSets, dateOfTraining, grid);
+                var dialog = new EditSetDialog(clickedItem,
+                        trainingSessionService,
+                        exerciseSets,
+                        dateOfTraining,
+                        grid,
+                        false);
                 contentLayout.add(dialog);
                 dialog.open();
             }));
             grid.addColumn(new NativeButtonRenderer<>("Remove", clickedItem -> {
                 exerciseSets.remove(clickedItem);
                 trainingSessionService.updateTrainingSession(dateOfTraining, exerciseSets);
-                grid.getDataProvider().refreshItem(clickedItem);
+                grid.setItems(exerciseSets);
             }));
             layout.setId(id);
 
@@ -116,7 +149,8 @@ class PreviousWorkoutsUI extends VerticalLayout {
 
             var addSet = new Button("Add Set");
             addSet.addClickListener((ComponentEventListener<ClickEvent<Button>>) buttonClickEvent -> {
-                var dialog = new EditSetDialog(null, trainingSessionService, exerciseSets, dateOfTraining, grid);
+                var dialog = new EditSetDialog(exerciseSets.get(exerciseSets.size() - 1),
+                        trainingSessionService, exerciseSets, dateOfTraining, grid, true);
                 contentLayout.add(dialog);
                 dialog.open();
             });

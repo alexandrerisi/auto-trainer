@@ -33,11 +33,13 @@ class EditSetDialog extends Dialog {
     private ExerciseSet selectedSet;
     private LocalDate date;
     private Grid<ExerciseSet> grid;
+    private boolean isNew;
 
     EditSetDialog(ExerciseSet selectedSet, TrainingSessionService service, List<ExerciseSet> sets, LocalDate date,
-                  Grid<ExerciseSet> grid) {
+                  Grid<ExerciseSet> grid, boolean isNew) {
 
         this.grid = grid;
+        this.isNew = isNew;
         this.selectedSet = selectedSet;
         this.service = service;
         this.sets = sets;
@@ -72,15 +74,16 @@ class EditSetDialog extends Dialog {
     private void loadSet(ExerciseSet set) {
         exercise.setValue(set.getExercise());
         repetitions.setValue((double) set.getRepetitions());
-        weight.setValue((double) set.getWeight());
+        weight.setValue(set.getWeight() - (set.getWeight() - (int) set.getWeight()));
     }
 
     private void saveExerciseSet() {
         exerciseSetToSave = new ExerciseSet();
         exerciseSetToSave.setExercise(exercise.getValue());
         exerciseSetToSave.setRepetitions(repetitions.getValue().shortValue());
-        exerciseSetToSave.setWeight(weight.getValue().floatValue());
-        sets.remove(selectedSet);
+        exerciseSetToSave.setWeight(weight.getValue());
+        if (!isNew)
+            sets.remove(selectedSet);
         sets.add(exerciseSetToSave);
         service.updateTrainingSession(date, sets);
         grid.setItems(sets);

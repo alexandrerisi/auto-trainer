@@ -1,5 +1,6 @@
 package com.risi.autotrainer.service;
 
+import com.risi.autotrainer.domain.Exercise;
 import com.risi.autotrainer.domain.ExerciseSet;
 import com.risi.autotrainer.domain.TrainingSession;
 import com.risi.autotrainer.repository.TrainingSessionRepository;
@@ -20,9 +21,9 @@ public class TrainingSessionService {
         repository.save(session);
     }
 
-    public List<TrainingSession> getTrainingSessionByDate(LocalDate from, LocalDate to) {
+    public List<TrainingSession> getTrainingSessionByDate(LocalDate from, LocalDate to, int limit) {
         return repository.findByDateBetween(from.atStartOfDay(),
-                to.atStartOfDay().plusDays(1).minus(1, ChronoUnit.MINUTES));
+                to.atStartOfDay().plusDays(1).minus(1, ChronoUnit.MINUTES), limit);
     }
 
     public void deleteTrainingSession(LocalDate from) {
@@ -30,9 +31,13 @@ public class TrainingSessionService {
         repository.deleteByDateBetween(from.atStartOfDay(), to.minus(1, ChronoUnit.MINUTES));
     }
 
+    public List<TrainingSession> getByExercise(Exercise exercise, int limit) {
+        return repository.findByExercise(exercise, limit);
+    }
+
     public void updateTrainingSession(LocalDate from, List<ExerciseSet> sets) {
         var to = from.plusDays(1).atStartOfDay();
-        var list = repository.findByDateBetween(from.atStartOfDay(), to.minus(1, ChronoUnit.MINUTES));
+        var list = repository.findByDateBetween(from.atStartOfDay(), to.minus(1, ChronoUnit.MINUTES), 1);
         if (list.size() == 1) {
             var ts = list.get(0);
             ts.setSets(sets);
