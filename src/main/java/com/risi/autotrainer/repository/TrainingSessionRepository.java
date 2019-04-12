@@ -4,6 +4,7 @@ import com.risi.autotrainer.domain.Exercise;
 import com.risi.autotrainer.domain.TrainingSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Repository;
@@ -34,9 +35,9 @@ public class TrainingSessionRepository {
         repository.deleteByDateBetween(from, to);
     }
 
-    @org.springframework.data.mongodb.repository.Query(sort = "{ date : 1 }")
     public List<TrainingSession> findByExercise(Exercise exercise, int limit) {
-        Query query = query(where("sets").elemMatch(where("exercise").is(exercise)));
+        Query query = query(where("sets").elemMatch(where("exercise").is(exercise)))
+                .with(new Sort(Sort.Direction.DESC, "date"));
         return template.find(query.limit(limit), TrainingSession.class);
     }
 }
