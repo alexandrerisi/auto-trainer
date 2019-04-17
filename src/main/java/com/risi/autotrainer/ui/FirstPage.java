@@ -25,16 +25,16 @@ public class FirstPage extends HorizontalLayout {
 
         this.userService = userService;
 
-        VerticalLayout span = new VerticalLayout();
+        var span = new VerticalLayout();
         span.setWidth("40%");
         add(span);
 
-        FormLayout formLayout = new FormLayout();
+        var formLayout = new FormLayout();
         setWidth("150px");
         Label label = new Label("Create Your User");
         formLayout.addFormItem(label, "");
 
-        EmailField email = new EmailField();
+        var email = new EmailField();
         email.setRequiredIndicatorVisible(true);
         email.setPlaceholder("Your email");
         formLayout.addFormItem(email, "Email");
@@ -53,12 +53,12 @@ public class FirstPage extends HorizontalLayout {
         formLayout.addFormItem(saveUserButton, "");
         add(formLayout);
 
-        Button forgotPassword = new Button("Forgot Password");
+        var forgotPassword = new Button("Forgot Password");
         formLayout.addFormItem(forgotPassword, "");
         add(formLayout);
 
-        String mainUiLink = RouteConfiguration.forApplicationScope().getUrl(MainPage.class);
-        Anchor link = new Anchor(mainUiLink, "Log In");
+        var mainUiLink = RouteConfiguration.forApplicationScope().getUrl(MainPage.class);
+        var link = new Anchor(mainUiLink, "Log In");
         formLayout.addFormItem(link, "");
 
         addPasswordListener(passwordField);
@@ -66,7 +66,7 @@ public class FirstPage extends HorizontalLayout {
     }
 
     private void addPasswordListener(PasswordField field) {
-        PasswordField checkAgainst = field.equals(passwordField) ? passwordConfirm : passwordField;
+        var checkAgainst = field.equals(passwordField) ? passwordConfirm : passwordField;
         field.addValueChangeListener(
                 (HasValue.ValueChangeListener<AbstractField.ComponentValueChangeEvent<PasswordField, String>>) ev -> {
             if (!checkAgainst.getValue().isEmpty() && !field.getValue().equals(checkAgainst.getValue())) {

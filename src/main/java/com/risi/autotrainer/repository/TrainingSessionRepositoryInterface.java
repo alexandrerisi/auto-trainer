@@ -6,10 +6,16 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface TrainingSessionRepositoryInterface extends MongoRepository<TrainingSession, String> {
 
-    List<TrainingSession> findByDateBetweenOrderByDateDesc(LocalDateTime from, LocalDateTime to, Pageable pageable);
+    List<TrainingSession> findByUserIdAndDateBetweenOrderByDateDesc(String userId,
+                                                                    LocalDateTime from,
+                                                                    LocalDateTime to,
+                                                                    Pageable pageable);
 
     void deleteByDateBetween(LocalDateTime from, LocalDateTime to);
+
+    Optional<TrainingSession> findByUserIdAndDate(String userId, LocalDateTime from);
 }

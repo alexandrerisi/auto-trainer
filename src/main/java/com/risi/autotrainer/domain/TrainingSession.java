@@ -3,6 +3,7 @@ package com.risi.autotrainer.domain;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,6 +17,11 @@ public class TrainingSession {
     private List<ExerciseSet> sets = new ArrayList<>();
     private LocalDateTime date;
     private String userId;
+
+    public void setDate(LocalDate date) {
+        // this is meant to correct the problem cause by the database saving all dates in UTC.
+        this.date = date.atStartOfDay().plusHours(1);
+    }
 
     @Override
     public boolean equals(Object o) {

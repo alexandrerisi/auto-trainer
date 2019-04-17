@@ -17,8 +17,6 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.NumberField;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import java.util.Optional;
-
 class ProfileUI extends HorizontalLayout {
 
     private ComboBox<String> gender;
@@ -36,7 +34,7 @@ class ProfileUI extends HorizontalLayout {
 
         this.userProfileService = userProfileService;
 
-        VerticalLayout vl = new VerticalLayout();
+        var vl = new VerticalLayout();
         vl.setWidth("200px");
         add(vl);
 
@@ -129,8 +127,8 @@ class ProfileUI extends HorizontalLayout {
     }
 
     private void loadProfile() {
-        User authenticatedUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Optional<UserProfile> userProfile = userProfileService.getUserProfile(authenticatedUser.getId());
+        var authenticatedUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        var userProfile = userProfileService.getUserProfile(authenticatedUser.getId());
 
         if (userProfile.isPresent()) {
             this.userProfile = userProfile.get();

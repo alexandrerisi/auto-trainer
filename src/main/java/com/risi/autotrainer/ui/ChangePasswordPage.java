@@ -13,28 +13,28 @@ import com.vaadin.flow.router.Route;
 public class ChangePasswordPage extends HorizontalLayout {
 
     public ChangePasswordPage() {
-        VerticalLayout span = new VerticalLayout();
+        var span = new VerticalLayout();
         span.setWidth("40%");
         add(span);
 
-        FormLayout formLayout = new FormLayout();
+        var formLayout = new FormLayout();
         setWidth("150px");
         Label label = new Label("Change Your Password");
         formLayout.addFormItem(label,"");
 
-        EmailField email = new EmailField();
+        var email = new EmailField();
         email.setPlaceholder("Your username");
         formLayout.addFormItem(email, "Username");
 
-        PasswordField passwordField = new PasswordField();
+        var passwordField = new PasswordField();
         passwordField.setPlaceholder("Old password");
         formLayout.addFormItem(passwordField, "Password");
 
-        PasswordField passwordConfirm = new PasswordField();
+        var passwordConfirm = new PasswordField();
         passwordConfirm.setPlaceholder("New password");
         formLayout.addFormItem(passwordConfirm, "Password");
 
-        Button saveUser = new Button("Save");
+        var saveUser = new Button("Save");
         formLayout.addFormItem(saveUser, "");
         add(formLayout);
     }

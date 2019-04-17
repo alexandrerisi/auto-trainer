@@ -22,20 +22,24 @@ public class MainPage extends VerticalLayout {
         //User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         //add("Hi " + user.getUsername() + " welcome to the Auto Trainer!");
 
-        Tab todayWorkout = new Tab("Suggested Workout for Today");
-        Tab previousWorkouts = new Tab("Previous Workouts");
-        Tab goals = new Tab("Profile");
-        Tabs tabs = new Tabs(todayWorkout, previousWorkouts, goals);
+        var todayWorkout = new Tab("Suggested Workout for Today");
+        var addWorkout = new Tab("Add Workout");
+        var previousWorkouts = new Tab("Previous Workouts");
+        var goals = new Tab("Profile");
+        var tabs = new Tabs(todayWorkout, addWorkout, previousWorkouts, goals);
         add(tabs);
 
-        VerticalLayout content = new VerticalLayout();
+        var content = new VerticalLayout();
         add(content);
 
         tabs.addSelectedChangeListener((ComponentEventListener<Tabs.SelectedChangeEvent>) event -> {
-            Tab selectedTab = event.getSource().getSelectedTab();
+            var selectedTab = event.getSource().getSelectedTab();
             if (selectedTab.equals(todayWorkout)) {
                 // todo
                 System.out.println("1");
+            } else if (selectedTab.equals(addWorkout)) {
+                content.removeAll();
+                content.add(new AddWorkoutUI(trainingSessionService));
             } else if (selectedTab.equals(previousWorkouts)) {
                 content.removeAll();
                 content.add(new PreviousWorkoutsUI(trainingSessionService));

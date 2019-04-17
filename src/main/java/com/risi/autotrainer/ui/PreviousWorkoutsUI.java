@@ -29,8 +29,7 @@ class PreviousWorkoutsUI extends VerticalLayout {
 
     private DatePicker to;
     private DatePicker from;
-    private Button searchByDate;
-    private ComboBox<Exercise> comboBoxExercise;
+    private ComboBox<Exercise> cbExercise;
     private VerticalLayout contentLayout = new VerticalLayout();
     private List<TrainingSession> trainingSessions;
     private TrainingSessionService trainingSessionService;
@@ -49,7 +48,6 @@ class PreviousWorkoutsUI extends VerticalLayout {
                         to.setValue(null);
                     if (to.getValue() != null)
                         to.setMin(from.getValue().plusDays(1));
-                    searchButtonActivation();
                 });
         from.setLabel("From Day");
 
@@ -61,34 +59,33 @@ class PreviousWorkoutsUI extends VerticalLayout {
                         from.setValue(null);
                     if (from.getValue() != null)
                         from.setMax(to.getValue().minusDays(1));
-                    searchButtonActivation();
                 });
         to.setLabel("To Day");
 
-        searchByDate = new Button("Search By Date");
-        searchByDate.addClickListener((ComponentEventListener<ClickEvent<Button>>) event -> {
-            trainingSessions = trainingSessionService.getTrainingSessionByDate(
-                    from.getValue(), to.getValue(), numberResults.getValue().intValue());
+        Button searchButton = new Button("Search");
+        searchButton.addClickListener((ComponentEventListener<ClickEvent<Button>>) event -> {
+            if (cbExercise.getValue() != null && from.getValue() != null && to.getValue() != null)
+                trainingSessions = trainingSessionService.getTrainingSessionByExerciseAndDate(cbExercise.getValue(),
+                        from.getValue(), to.getValue(), numberResults.getValue().intValue());
+            else if (cbExercise.getValue() != null && (from.getValue() == null || to.getValue() == null))
+                trainingSessions = trainingSessionService.getByExercise(cbExercise.getValue(),
+                        numberResults.getValue().intValue());
+            else if (cbExercise.getValue() == null && from.getValue() != null && to.getValue() != null)
+                trainingSessions = trainingSessionService.getTrainingSessionByDate(
+                        from.getValue(), to.getValue(), numberResults.getValue().intValue());
+            else return;
+
             contentLayout.removeAll();
             if (trainingSessions != null) {
                 loadTrainingSessions(trainingSessions);
             }
         });
-        searchByDate.setEnabled(false);
 
-        dateSelectorLayout.add(from, to, searchByDate);
+        dateSelectorLayout.add(from, to, searchButton);
 
         var exerciseSelectorLayout = new HorizontalLayout();
-        comboBoxExercise = new ComboBox<>("Exercise", Exercise.values());
-        Button searchByExercise = new Button("Search By Exercise");
-        searchByExercise.addClickListener((ComponentEventListener<ClickEvent<Button>>) buttonClickEvent -> {
-            if (comboBoxExercise.getValue() != null) {
-                contentLayout.removeAll();
-                loadTrainingSessions(trainingSessionService.getByExercise(
-                        comboBoxExercise.getValue(), numberResults.getValue().intValue()));
-            }
-        });
-        exerciseSelectorLayout.add(comboBoxExercise, searchByExercise);
+        cbExercise = new ComboBox<>("Exercise", Exercise.values());
+        exerciseSelectorLayout.add(cbExercise);
 
         numberResults = new NumberField("Number of training sessions showed.");
         numberResults.setStep(1);
@@ -100,11 +97,6 @@ class PreviousWorkoutsUI extends VerticalLayout {
         add(dateSelectorLayout, exerciseSelectorLayout, numberResults, contentLayout);
     }
 
-    private void searchButtonActivation() {
-        if (from.getValue() != null && to.getValue() != null)
-            searchByDate.setEnabled(true);
-    }
-
     private void loadTrainingSessions(List<TrainingSession> sessions) {
 
         var sessionsByDay = createSessionsListByDay(sessions);
@@ -113,8 +105,9 @@ class PreviousWorkoutsUI extends VerticalLayout {
         for (List<TrainingSession> daySession : sessionsByDay) {
             var layout = new VerticalLayout();
             var titleLayout = new HorizontalLayout();
-            var grid = new Grid<>(ExerciseSet.class);
             var exerciseSets = new ArrayList<ExerciseSet>();
+            var grid = new Grid<>(ExerciseSet.class);
+            grid.setWidth("65%");
             var id = daySession.get(0).getDate().format(dtf);
             var dateInfo = id.split("-");
             var dateOfTraining = LocalDate.of(Integer.parseInt(dateInfo[0]),
@@ -163,7 +156,6 @@ class PreviousWorkoutsUI extends VerticalLayout {
                 Collections.sort(ts.getSets());
                 exerciseSets.addAll(ts.getSets());
             }
-
             grid.setItems(exerciseSets);
         }
     }
