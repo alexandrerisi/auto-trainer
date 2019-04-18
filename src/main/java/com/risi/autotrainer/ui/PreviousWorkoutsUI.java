@@ -47,7 +47,7 @@ class PreviousWorkoutsUI extends VerticalLayout {
                     if (to.getValue() != null && !from.getValue().isBefore(to.getValue()))
                         to.setValue(null);
                     if (to.getValue() != null)
-                        to.setMin(from.getValue().plusDays(1));
+                        to.setMin(from.getValue());
                 });
         from.setLabel("From Day");
 

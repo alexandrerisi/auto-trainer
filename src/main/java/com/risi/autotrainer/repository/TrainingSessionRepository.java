@@ -25,17 +25,16 @@ public class TrainingSessionRepository {
     @Autowired
     private TrainingSessionRepositoryInterface repository;
 
-    public List<TrainingSession> findByDateBetween(String userId, LocalDate from, LocalDate to, int limit) {
-        return repository.findByUserIdAndDateBetweenOrderByDateDesc(userId, from.atStartOfDay(), to.atStartOfDay(),
-                PageRequest.of(0, limit));
+    public List<TrainingSession> findByDateBetween(String userId, LocalDateTime from, LocalDateTime to, int limit) {
+        return repository.findByUserIdAndDateBetweenOrderByDateDesc(userId, from, to, PageRequest.of(0, limit));
     }
 
     public void save(TrainingSession session) {
         repository.save(session);
     }
 
-    public void deleteByDateBetween(LocalDate from, LocalDate to) {
-        repository.deleteByDateBetween(from.atStartOfDay(), to.atStartOfDay());
+    public void deleteByDate(LocalDateTime from) {
+        repository.deleteByDate(from);
     }
 
     public List<TrainingSession> findByExercise(Exercise exercise, int limit) {
@@ -50,8 +49,8 @@ public class TrainingSessionRepository {
 
     public List<TrainingSession> findByUserIdAndExerciseAndDateBetween(String userId,
                                                                        Exercise exercise,
-                                                              LocalDate from,
-                                                              LocalDate to,
+                                                              LocalDateTime from,
+                                                              LocalDateTime to,
                                                               int limit) {
 
         Query query = query(where("sets").elemMatch(where("exercise").is(exercise))

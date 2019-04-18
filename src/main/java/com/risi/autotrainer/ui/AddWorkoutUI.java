@@ -2,7 +2,6 @@ package com.risi.autotrainer.ui;
 
 import com.risi.autotrainer.domain.ExerciseSet;
 import com.risi.autotrainer.domain.TrainingSession;
-import com.risi.autotrainer.domain.User;
 import com.risi.autotrainer.service.TrainingSessionService;
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.ComponentEventListener;
@@ -11,6 +10,7 @@ import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.data.renderer.NativeButtonRenderer;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -35,6 +35,12 @@ class AddWorkoutUI extends VerticalLayout {
         var commandLayout = new HorizontalLayout();
         commandLayout.add(workoutDay, createWorkoutButton);
         add(commandLayout, addSetButton, workoutGrid, saveWorkoutButton);
+
+        workoutGrid.addColumn(new NativeButtonRenderer<>("Remove", clickedItem -> {
+            exerciseSets.remove(clickedItem);
+            trainingSessionService.updateTrainingSession(workoutDay.getValue(), exerciseSets);
+            workoutGrid.setItems(exerciseSets);
+        }));
 
         createWorkoutButton.addClickListener((ComponentEventListener<ClickEvent<Button>>) event -> {
             if (workoutDay.getValue() != null) {

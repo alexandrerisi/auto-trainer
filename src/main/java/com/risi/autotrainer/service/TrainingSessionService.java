@@ -27,12 +27,12 @@ public class TrainingSessionService {
 
     public List<TrainingSession> getTrainingSessionByDate(LocalDate from, LocalDate to, int limit) {
         var user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return repository.findByDateBetween(user.getId(), from, to, limit);
+        return repository.findByDateBetween(user.getId(), from.atStartOfDay(), to.atStartOfDay(), limit);
     }
 
     public Optional<TrainingSession> getSingleTrainingSessionByDate(LocalDate date) {
         var user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return repository.findSingleTrainingSessionByDate(user.getId(), date.atStartOfDay().plusHours(1));
+        return repository.findSingleTrainingSessionByDate(user.getId(), date.atStartOfDay());
     }
 
     public List<TrainingSession> getTrainingSessionByExerciseAndDate(Exercise exercise,
@@ -40,11 +40,15 @@ public class TrainingSessionService {
                                                                      LocalDate to,
                                                                      int limit) {
         var user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return repository.findByUserIdAndExerciseAndDateBetween(user.getId(), exercise, from, to, limit);
+        return repository.findByUserIdAndExerciseAndDateBetween(user.getId(),
+                exercise,
+                from.atStartOfDay(),
+                to.atStartOfDay(),
+                limit);
     }
 
-    public void deleteTrainingSession(LocalDate from) {
-        repository.deleteByDateBetween(from, from.plusDays(1));
+    public void deleteTrainingSession(LocalDate date) {
+        repository.deleteByDate(date.atStartOfDay());
     }
 
     public List<TrainingSession> getByExercise(Exercise exercise, int limit) {
@@ -53,7 +57,6 @@ public class TrainingSessionService {
 
     public void updateTrainingSession(LocalDate from, List<ExerciseSet> sets) {
         var user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        var to = from.plusDays(1);
         var session = repository.findSingleTrainingSessionByDate(user.getId(), from.atStartOfDay());
         if (session.isPresent()) {
             var ts = session.get();

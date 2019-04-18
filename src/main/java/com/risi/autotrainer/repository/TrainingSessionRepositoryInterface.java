@@ -15,7 +15,7 @@ public interface TrainingSessionRepositoryInterface extends MongoRepository<Trai
                                                                     LocalDateTime to,
                                                                     Pageable pageable);
 
-    void deleteByDateBetween(LocalDateTime from, LocalDateTime to);
+    void deleteByDate(LocalDateTime date);
 
     Optional<TrainingSession> findByUserIdAndDate(String userId, LocalDateTime from);
 }
