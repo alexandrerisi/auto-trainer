@@ -16,7 +16,7 @@ import com.vaadin.flow.theme.material.Material;
 @Theme(value = Material.class, variant = Material.DARK)
 public class MainPage extends VerticalLayout {
 
-    public MainPage(UserProfileService userProfileService, TrainingSessionService trainingSessionService) {
+    public MainPage(UserProfileService profileService, TrainingSessionService trainingSessionService) {
 
         //setWidth("50%");
         //User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -39,13 +39,13 @@ public class MainPage extends VerticalLayout {
                 System.out.println("1");
             } else if (selectedTab.equals(addWorkout)) {
                 content.removeAll();
-                content.add(new AddWorkoutUI(trainingSessionService));
+                content.add(new AddWorkoutUI(trainingSessionService, profileService));
             } else if (selectedTab.equals(previousWorkouts)) {
                 content.removeAll();
-                content.add(new PreviousWorkoutsUI(trainingSessionService));
+                content.add(new PreviousWorkoutsUI(trainingSessionService, profileService));
             } else {
                 content.removeAll();
-                content.add(new ProfileUI(userProfileService));
+                content.add(new ProfileUI(profileService));
             }
         });
     }

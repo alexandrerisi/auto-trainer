@@ -3,7 +3,9 @@ package com.risi.autotrainer.ui;
 import com.risi.autotrainer.domain.Exercise;
 import com.risi.autotrainer.domain.ExerciseSet;
 import com.risi.autotrainer.domain.TrainingSession;
+import com.risi.autotrainer.domain.UserProfile;
 import com.risi.autotrainer.service.TrainingSessionService;
+import com.risi.autotrainer.service.UserProfileService;
 import com.vaadin.flow.component.AbstractField;
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.ComponentEventListener;
@@ -33,10 +35,13 @@ class PreviousWorkoutsUI extends VerticalLayout {
     private VerticalLayout contentLayout = new VerticalLayout();
     private List<TrainingSession> trainingSessions;
     private TrainingSessionService trainingSessionService;
+    private UserProfile profile;
     private NumberField numberResults;
 
-    PreviousWorkoutsUI(TrainingSessionService trainingSessionService) {
+    PreviousWorkoutsUI(TrainingSessionService trainingSessionService, UserProfileService profileService) {
+        var profile = profileService.getUserProfile().isPresent() ? profileService.getUserProfile().get() : null;
         this.trainingSessionService = trainingSessionService;
+        this.profile = profile;
         HorizontalLayout dateSelectorLayout = new HorizontalLayout();
         add(dateSelectorLayout);
 
@@ -76,15 +81,15 @@ class PreviousWorkoutsUI extends VerticalLayout {
             else return;
 
             contentLayout.removeAll();
-            if (trainingSessions != null) {
+            if (trainingSessions != null)
                 loadTrainingSessions(trainingSessions);
-            }
         });
 
         dateSelectorLayout.add(from, to, searchButton);
 
         var exerciseSelectorLayout = new HorizontalLayout();
-        cbExercise = new ComboBox<>("Exercise", Exercise.values());
+        if (profile != null)
+            cbExercise = new ComboBox<>("Exercise", profile.getExercises());
         exerciseSelectorLayout.add(cbExercise);
 
         numberResults = new NumberField("Number of training sessions showed.");
@@ -116,6 +121,7 @@ class PreviousWorkoutsUI extends VerticalLayout {
             grid.addColumn(new NativeButtonRenderer<>("Edit", clickedItem -> {
                 var dialog = new EditSetDialog(clickedItem,
                         trainingSessionService,
+                        profile,
                         exerciseSets,
                         dateOfTraining,
                         grid,
@@ -143,7 +149,7 @@ class PreviousWorkoutsUI extends VerticalLayout {
             var addSet = new Button("Add Set");
             addSet.addClickListener((ComponentEventListener<ClickEvent<Button>>) buttonClickEvent -> {
                 var dialog = new EditSetDialog(exerciseSets.get(exerciseSets.size() - 1),
-                        trainingSessionService, exerciseSets, dateOfTraining, grid, true);
+                        trainingSessionService, profile, exerciseSets, dateOfTraining, grid, true);
                 contentLayout.add(dialog);
                 dialog.open();
             });

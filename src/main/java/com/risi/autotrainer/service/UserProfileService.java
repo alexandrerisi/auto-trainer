@@ -7,6 +7,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
+import static com.risi.autotrainer.config.SecurityConfig.getAuthenticatedUser;
+
 @Service
 public class UserProfileService {
 
@@ -17,7 +19,7 @@ public class UserProfileService {
         repository.save(profile);
     }
 
-    public Optional<UserProfile> getUserProfile(String userId) {
-        return repository.findByUserId(userId);
+    public Optional<UserProfile> getUserProfile() {
+        return repository.findByUserId(getAuthenticatedUser().getId());
     }
 }

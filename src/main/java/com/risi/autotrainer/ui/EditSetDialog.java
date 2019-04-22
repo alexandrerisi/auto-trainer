@@ -2,6 +2,7 @@ package com.risi.autotrainer.ui;
 
 import com.risi.autotrainer.domain.Exercise;
 import com.risi.autotrainer.domain.ExerciseSet;
+import com.risi.autotrainer.domain.UserProfile;
 import com.risi.autotrainer.service.TrainingSessionService;
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.ComponentEventListener;
@@ -35,18 +36,24 @@ class EditSetDialog extends Dialog {
     private Grid<ExerciseSet> grid;
     private boolean isNew;
 
-    EditSetDialog(ExerciseSet selectedSet, TrainingSessionService service, List<ExerciseSet> sets, LocalDate date,
-                  Grid<ExerciseSet> grid, boolean isNew) {
+    EditSetDialog(ExerciseSet selectedSet,
+                  TrainingSessionService trainingSessionService,
+                  UserProfile profile,
+                  List<ExerciseSet> sets,
+                  LocalDate date,
+                  Grid<ExerciseSet> grid,
+                  boolean isNew) {
 
         this.grid = grid;
         this.isNew = isNew;
         this.selectedSet = selectedSet;
-        this.service = service;
+        this.service = trainingSessionService;
         this.sets = sets;
         this.date = date;
         add(new Label("Exercise Set"));
         vLayout = new VerticalLayout();
-        exercise = new ComboBox<>("Exercise", Exercise.values());
+        if (profile != null)
+            exercise = new ComboBox<>("Exercise", profile.getExercises());
         repetitions = new NumberField("Repetitions");
         repetitions.setHasControls(true);
         repetitions.setMin(1);

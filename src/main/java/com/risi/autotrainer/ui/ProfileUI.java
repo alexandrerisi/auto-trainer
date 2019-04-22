@@ -1,21 +1,20 @@
 package com.risi.autotrainer.ui;
 
-import com.risi.autotrainer.domain.BodyPreference;
-import com.risi.autotrainer.domain.Goal;
-import com.risi.autotrainer.domain.User;
-import com.risi.autotrainer.domain.UserProfile;
+import com.risi.autotrainer.domain.*;
 import com.risi.autotrainer.service.UserProfileService;
-import com.vaadin.flow.component.AbstractField;
-import com.vaadin.flow.component.ClickEvent;
-import com.vaadin.flow.component.ComponentEventListener;
-import com.vaadin.flow.component.HasValue;
+import com.vaadin.flow.component.*;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.NumberField;
 import org.springframework.security.core.context.SecurityContextHolder;
+
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Set;
 
 class ProfileUI extends HorizontalLayout {
 
@@ -29,6 +28,8 @@ class ProfileUI extends HorizontalLayout {
     private UserProfileService userProfileService;
     private boolean isProfileLoaded = false;
     private UserProfile userProfile;
+    private Grid<Exercise> exerciseGrid;
+    private Set<Exercise> userExercises;
 
     ProfileUI(UserProfileService userProfileService) {
 
@@ -91,6 +92,36 @@ class ProfileUI extends HorizontalLayout {
                         BodyPreference>>) event -> saveButtonActivation());
         vl.add(bodyPreference);
 
+        var gridButtonsLayout = new HorizontalLayout();
+        var addExerciseButton = new Button("New Exercise");
+        var removeExerciseButton = new Button("Remove Selected");
+        gridButtonsLayout.add(addExerciseButton, removeExerciseButton);
+        vl.add(gridButtonsLayout);
+
+        exerciseGrid = new Grid<>();
+        exerciseGrid.addColumn(Exercise::getExerciseName).setHeader("Exercise Name").setWidth("150px");
+        exerciseGrid.addColumn(Exercise::getMuscle).setHeader("Targeted Muscles").setWidth("550px");
+        exerciseGrid.addColumn(Exercise::getPriority).setHeader("Priority").setWidth("150px");
+        exerciseGrid.setWidth("850px");
+        exerciseGrid.setHeightByRows(true);
+        exerciseGrid.setSelectionMode(Grid.SelectionMode.SINGLE);
+        vl.add(exerciseGrid);
+
+        addExerciseButton.addClickListener((ComponentEventListener<ClickEvent<Button>>) event -> {
+            var dialog = new CreateExerciseDialog(exerciseGrid, userExercises, saveButton);
+            add(dialog);
+            dialog.open();
+        });
+
+        removeExerciseButton.addClickListener((ComponentEventListener<ClickEvent<Button>>) event -> {
+            Optional<Exercise> selectedExercise = exerciseGrid.getSelectedItems().stream().findFirst();
+            if (selectedExercise.isPresent()) {
+                userExercises.remove(selectedExercise.get());
+                exerciseGrid.setItems(userExercises);
+                saveButton.setEnabled(true);
+            }
+        });
+
         saveButton = new Button("Save");
         saveButton.setEnabled(false);
         saveButton.addClickListener((ComponentEventListener<ClickEvent<Button>>) event -> {
@@ -104,6 +135,7 @@ class ProfileUI extends HorizontalLayout {
             userProfile.setAge(age.getValue().shortValue());
             userProfile.setGoal(goal.getValue());
             userProfile.setBodyPreference(bodyPreference.getValue());
+            userProfile.setExercises(userExercises);
             userProfileService.saveUserProfile(userProfile);
             saveButton.setEnabled(false);
         });
@@ -127,8 +159,8 @@ class ProfileUI extends HorizontalLayout {
     }
 
     private void loadProfile() {
-        var authenticatedUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        var userProfile = userProfileService.getUserProfile(authenticatedUser.getId());
+
+        var userProfile = userProfileService.getUserProfile();
 
         if (userProfile.isPresent()) {
             this.userProfile = userProfile.get();
@@ -138,6 +170,11 @@ class ProfileUI extends HorizontalLayout {
             weight.setValue((double) this.userProfile.getWeight());
             height.setValue((double) this.userProfile.getHeight());
             bodyPreference.setValue(this.userProfile.getBodyPreference());
+            if (this.userProfile.getExercises() != null)
+                userExercises = this.userProfile.getExercises();
+            else
+                userExercises = new HashSet<>();
+            exerciseGrid.setItems(userExercises);
         }
         isProfileLoaded = true;
         saveButton.setEnabled(false);

@@ -1,21 +1,22 @@
 package com.risi.autotrainer.domain;
 
-public enum Exercise {
+import lombok.*;
 
-    SQUAT,
-    DEAD_LIFT,
-    OVERHEAD_PRESS,
-    BENCH_PRESS,
-    BARBELL_ROW,
-    PULL_UP,
-    PUSH_UP,
-    HAMSTRING_CURL,
-    CALF_RAISE,
-    LEG_PRESS,
-    LEG_EXTENSION,
-    SEATED_ROW,
-    DIPS,
-    BICEPS_CURL,
-    TRICEPS_EXTENSION,
-    DUMBBELL_ROW
+import java.util.Collection;
+
+@Getter
+@Setter
+@AllArgsConstructor
+@EqualsAndHashCode
+public class Exercise {
+
+    private String exerciseName;
+    private Collection<Muscle> muscle;
+    private Priority priority;
+    private String userId;
+
+    @Override
+    public String toString() {
+        return exerciseName;
+    }
 }

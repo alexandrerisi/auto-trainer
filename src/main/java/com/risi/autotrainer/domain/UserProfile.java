@@ -3,6 +3,8 @@ package com.risi.autotrainer.domain;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
 
+import java.util.Set;
+
 @Data
 public class UserProfile {
 
@@ -15,4 +17,5 @@ public class UserProfile {
     private short age;
     private Goal goal;
     private BodyPreference bodyPreference;
+    private Set<Exercise> exercises;
 }

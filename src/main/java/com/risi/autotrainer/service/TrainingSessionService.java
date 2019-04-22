@@ -1,17 +1,15 @@
 package com.risi.autotrainer.service;
 
-import com.risi.autotrainer.domain.Exercise;
-import com.risi.autotrainer.domain.ExerciseSet;
-import com.risi.autotrainer.domain.TrainingSession;
-import com.risi.autotrainer.domain.User;
+import com.risi.autotrainer.domain.*;
 import com.risi.autotrainer.repository.TrainingSessionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+
+import static com.risi.autotrainer.config.SecurityConfig.*;
 
 @Service
 public class TrainingSessionService {
@@ -20,26 +18,29 @@ public class TrainingSessionService {
     private TrainingSessionRepository repository;
 
     public void saveTrainingSession(TrainingSession session) {
-        var user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        var user = getAuthenticatedUser();
         session.setUserId(user.getId());
         repository.save(session);
     }
 
     public List<TrainingSession> getTrainingSessionByDate(LocalDate from, LocalDate to, int limit) {
-        var user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return repository.findByDateBetween(user.getId(), from.atStartOfDay(), to.atStartOfDay(), limit);
+        var user = getAuthenticatedUser();
+        return repository.findByDateBetween(user.getId(),
+                from.atStartOfDay(),
+                to.atStartOfDay(),
+                limit);
     }
 
     public Optional<TrainingSession> getSingleTrainingSessionByDate(LocalDate date) {
-        var user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return repository.findSingleTrainingSessionByDate(user.getId(), date.atStartOfDay());
+        var user = getAuthenticatedUser();
+        return repository.findSingleTrainingSessionByDate(user.getId(), date.atStartOfDay().plusHours(1));
     }
 
     public List<TrainingSession> getTrainingSessionByExerciseAndDate(Exercise exercise,
                                                                      LocalDate from,
                                                                      LocalDate to,
                                                                      int limit) {
-        var user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        var user = getAuthenticatedUser();
         return repository.findByUserIdAndExerciseAndDateBetween(user.getId(),
                 exercise,
                 from.atStartOfDay(),
@@ -56,8 +57,7 @@ public class TrainingSessionService {
     }
 
     public void updateTrainingSession(LocalDate from, List<ExerciseSet> sets) {
-        var user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        var session = repository.findSingleTrainingSessionByDate(user.getId(), from.atStartOfDay());
+        var session = getSingleTrainingSessionByDate(from);
         if (session.isPresent()) {
             var ts = session.get();
             ts.setSets(sets);

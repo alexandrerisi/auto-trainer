@@ -1,8 +1,9 @@
 package com.risi.autotrainer.domain;
 
 public enum Priority {
-
+    VERY_HIGH,
     HIGH,
     MEDIUM,
-    LOW
+    LOW,
+    VERY_LOW
 }

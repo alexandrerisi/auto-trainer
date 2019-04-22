@@ -15,6 +15,6 @@ public class ExerciseSet implements Comparable<ExerciseSet> {
 
     @Override
     public int compareTo(ExerciseSet o) {
-        return exercise.name().compareTo(o.exercise.name());
+        return exercise.getExerciseName().compareTo(o.exercise.getExerciseName());
     }
 }

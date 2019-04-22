@@ -3,6 +3,7 @@ package com.risi.autotrainer.ui;
 import com.risi.autotrainer.domain.ExerciseSet;
 import com.risi.autotrainer.domain.TrainingSession;
 import com.risi.autotrainer.service.TrainingSessionService;
+import com.risi.autotrainer.service.UserProfileService;
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.button.Button;
@@ -18,23 +19,21 @@ import java.util.List;
 
 class AddWorkoutUI extends VerticalLayout {
 
-    private DatePicker workoutDay;
-    private Grid<ExerciseSet> workoutGrid;
-    private Button saveWorkoutButton;
-    private Button addSetButton;
-    private Button createWorkoutButton;
     private List<ExerciseSet> exerciseSets;
 
-    AddWorkoutUI(TrainingSessionService trainingSessionService) {
-        workoutDay = new DatePicker();
+    AddWorkoutUI(TrainingSessionService trainingSessionService, UserProfileService profileService) {
+        var profile = profileService.getUserProfile().isPresent() ? profileService.getUserProfile().get() : null;
+        var workoutDay = new DatePicker();
         workoutDay.setValue(LocalDate.now());
-        createWorkoutButton = new Button("Create Workout");
-        workoutGrid = new Grid<>(ExerciseSet.class);
-        saveWorkoutButton = new Button("Save Workout");
-        addSetButton = new Button("Add Set");
+        workoutDay.setMax(LocalDate.now());
+        var createWorkoutButton = new Button("Create Workout");
+        var workoutGrid = new Grid<>(ExerciseSet.class);
+        var addSetButton = new Button("Add Set");
+        addSetButton.setEnabled(false);
         var commandLayout = new HorizontalLayout();
         commandLayout.add(workoutDay, createWorkoutButton);
-        add(commandLayout, addSetButton, workoutGrid, saveWorkoutButton);
+        add(commandLayout, addSetButton, workoutGrid);
+        workoutGrid.setVisible(false);
 
         workoutGrid.addColumn(new NativeButtonRenderer<>("Remove", clickedItem -> {
             exerciseSets.remove(clickedItem);
@@ -55,12 +54,19 @@ class AddWorkoutUI extends VerticalLayout {
                     exerciseSets = new ArrayList<>();
                 }
             }
+            addSetButton.setEnabled(true);
+            workoutGrid.setVisible(true);
         });
 
         addSetButton.addClickListener((ComponentEventListener<ClickEvent<Button>>) event -> {
             var lastExerciseSet = exerciseSets.size() > 0 ? exerciseSets.get(exerciseSets.size() - 1) : null;
-            var dialog = new EditSetDialog(lastExerciseSet, trainingSessionService, exerciseSets, workoutDay.getValue(),
-                    workoutGrid, true);
+            var dialog = new EditSetDialog(lastExerciseSet,
+                    trainingSessionService,
+                    profile,
+                    exerciseSets,
+                    workoutDay.getValue(),
+                    workoutGrid,
+                    true);
             add(dialog);
             dialog.open();
         });
