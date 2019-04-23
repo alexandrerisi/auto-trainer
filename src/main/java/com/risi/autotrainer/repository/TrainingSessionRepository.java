@@ -37,7 +37,8 @@ public class TrainingSessionRepository {
     }
 
     public List<TrainingSession> findByExercise(Exercise exercise, int limit) {
-        Query query = query(where("sets").elemMatch(where("exercise").is(exercise)))
+        Query query = query(where("sets")
+                .elemMatch(where("exercise").is(exercise)))
                 .with(new Sort(Sort.Direction.DESC, "date"));
         return template.find(query.limit(limit), TrainingSession.class);
     }
@@ -48,9 +49,9 @@ public class TrainingSessionRepository {
 
     public List<TrainingSession> findByUserIdAndExerciseAndDateBetween(String userId,
                                                                        Exercise exercise,
-                                                              LocalDateTime from,
-                                                              LocalDateTime to,
-                                                              int limit) {
+                                                                       LocalDateTime from,
+                                                                       LocalDateTime to,
+                                                                       int limit) {
 
         Query query = query(where("sets").elemMatch(where("exercise").is(exercise))
                 .and("date").lte(to).gte(from)

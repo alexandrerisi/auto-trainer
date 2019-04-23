@@ -18,30 +18,28 @@ public class TrainingSessionService {
     private TrainingSessionRepository repository;
 
     public void saveTrainingSession(TrainingSession session) {
-        var user = getAuthenticatedUser();
-        session.setUserId(user.getId());
+        session.setUserId(getAuthenticatedUser().getId());
         repository.save(session);
     }
 
     public List<TrainingSession> getTrainingSessionByDate(LocalDate from, LocalDate to, int limit) {
-        var user = getAuthenticatedUser();
-        return repository.findByDateBetween(user.getId(),
+        return repository.findByDateBetween(getAuthenticatedUser().getId(),
                 from.atStartOfDay(),
                 to.atStartOfDay(),
                 limit);
     }
 
     public Optional<TrainingSession> getSingleTrainingSessionByDate(LocalDate date) {
-        var user = getAuthenticatedUser();
-        return repository.findSingleTrainingSessionByDate(user.getId(), date.atStartOfDay().plusHours(1));
+        return repository.findSingleTrainingSessionByDate(
+                getAuthenticatedUser().getId(),
+                date.atStartOfDay().plusHours(1));
     }
 
     public List<TrainingSession> getTrainingSessionByExerciseAndDate(Exercise exercise,
                                                                      LocalDate from,
                                                                      LocalDate to,
                                                                      int limit) {
-        var user = getAuthenticatedUser();
-        return repository.findByUserIdAndExerciseAndDateBetween(user.getId(),
+        return repository.findByUserIdAndExerciseAndDateBetween(getAuthenticatedUser().getId(),
                 exercise,
                 from.atStartOfDay(),
                 to.atStartOfDay(),
