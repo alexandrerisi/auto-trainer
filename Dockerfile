@@ -1,3 +1,3 @@
 FROM openjdk:11
-COPY src /
+COPY . /
 CMD ["./mvnw", "spring-boot:run"]
