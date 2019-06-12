@@ -21,7 +21,7 @@ class CreateExerciseDialog extends Dialog {
 
     private List<Muscle> targetedMuscles = new ArrayList<>();
 
-    CreateExerciseDialog(Grid<Exercise> exerciseGrid, Set<Exercise> userExercises, Button saveProfileButton) {
+    CreateExerciseDialog(Grid<Exercise> exerciseGrid, Set<Exercise> userExercises, ProfileUI profileUI) {
 
         var vLayout = new VerticalLayout();
         var exerciseName = new TextField("Exercise Name");
@@ -62,7 +62,7 @@ class CreateExerciseDialog extends Dialog {
                         null);
                 userExercises.add(exercise);
                 exerciseGrid.setItems(userExercises);
-                saveProfileButton.setEnabled(true);
+                profileUI.saveProfile();
                 close();
             }
 

@@ -4,6 +4,7 @@ import com.risi.autotrainer.service.TrainingSessionService;
 import com.risi.autotrainer.service.UserProfileService;
 import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.tabs.Tabs;
@@ -18,12 +19,14 @@ import com.vaadin.flow.theme.material.Material;
 public class MainPage extends Div {
 
     public MainPage(UserProfileService profileService, TrainingSessionService trainingSessionService) {
-        getLocale();
+        setWidth("50%");
+        var icon = new Tab("");
+        icon.add(new Image("frontend/barbell.png", ""));
         var todayWorkout = new Tab("Suggested Workout for Today");
         var addWorkout = new Tab("Add Workout");
         var previousWorkouts = new Tab("Previous Workouts");
-        var goals = new Tab("Profile");
-        var tabs = new Tabs(todayWorkout, addWorkout, previousWorkouts, goals);
+        var profile = new Tab("Profile");
+        var tabs = new Tabs(icon, todayWorkout, addWorkout, previousWorkouts, profile);
         add(tabs);
 
         var content = new VerticalLayout();
@@ -32,15 +35,15 @@ public class MainPage extends Div {
         tabs.addSelectedChangeListener((ComponentEventListener<Tabs.SelectedChangeEvent>) event -> {
             var selectedTab = event.getSource().getSelectedTab();
             if (selectedTab.equals(todayWorkout)) {
-                // todo
-                System.out.println("1");
+                // todo implement tab
+                content.removeAll();
             } else if (selectedTab.equals(addWorkout)) {
                 content.removeAll();
                 content.add(new AddWorkoutUI(trainingSessionService, profileService));
             } else if (selectedTab.equals(previousWorkouts)) {
                 content.removeAll();
                 content.add(new PreviousWorkoutsUI(trainingSessionService, profileService));
-            } else {
+            } else if (selectedTab.equals(profile)) {
                 content.removeAll();
                 content.add(new ProfileUI(profileService));
             }

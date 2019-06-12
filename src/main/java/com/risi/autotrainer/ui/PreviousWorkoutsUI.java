@@ -91,8 +91,11 @@ class PreviousWorkoutsUI extends VerticalLayout {
         dateSelectorLayout.add(from, to);
 
         var exerciseSelectorLayout = new HorizontalLayout();
-        if (profile != null)
-            cbExercise = new ComboBox<>("Exercise", profile.getExercises());
+        if (profile != null) {
+            var exercisesCollection = new ArrayList<>(profile.getExercises());
+            Collections.sort(exercisesCollection);
+            cbExercise = new ComboBox<>("Exercise", exercisesCollection);
+        }
         exerciseSelectorLayout.setAlignItems(Alignment.CENTER);
         exerciseSelectorLayout.add(cbExercise, singleExerciseCheck);
 

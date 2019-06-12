@@ -5,6 +5,7 @@ import com.risi.autotrainer.service.UserProfileService;
 import com.vaadin.flow.component.*;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -12,6 +13,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.NumberField;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -20,16 +22,15 @@ class ProfileUI extends HorizontalLayout {
 
     private ComboBox<String> gender;
     private ComboBox<Goal> goal;
-    private NumberField age;
+    private DatePicker birthDate;
     private NumberField weight;
     private NumberField height;
     private ComboBox<BodyPreference> bodyPreference;
-    private Button saveButton;
     private UserProfileService userProfileService;
-    private boolean isProfileLoaded = false;
     private UserProfile userProfile;
     private Grid<Exercise> exerciseGrid;
     private Set<Exercise> userExercises;
+    private boolean isProfileLoaded;
 
     ProfileUI(UserProfileService userProfileService) {
 
@@ -43,18 +44,15 @@ class ProfileUI extends HorizontalLayout {
         gender.setRequired(true);
         gender.addValueChangeListener(
                 (HasValue.ValueChangeListener<AbstractField.ComponentValueChangeEvent<ComboBox<String>,
-                        String>>) event -> saveButtonActivation());
+                        String>>) event -> saveProfile());
         vl.add(gender);
 
-        age = new NumberField("Age");
-        age.setValue(15d);
-        age.setMin(15);
-        age.setMax(250);
-        age.setHasControls(true);
-        age.addValueChangeListener(
-                (HasValue.ValueChangeListener<AbstractField.ComponentValueChangeEvent<NumberField, Double>>) event ->
-                        saveButtonActivation());
-        vl.add(age);
+        birthDate = new DatePicker("Birth Date");
+        birthDate.setMax(LocalDate.now());
+        birthDate.addValueChangeListener(
+                (HasValue.ValueChangeListener<AbstractField.ComponentValueChangeEvent<DatePicker, LocalDate>>) ev ->
+                        saveProfile());
+        vl.add(birthDate);
 
         weight = new NumberField("Weight");
         weight.setSuffixComponent(new Span("kg"));
@@ -64,7 +62,7 @@ class ProfileUI extends HorizontalLayout {
         weight.setHasControls(true);
         weight.addValueChangeListener(
                 (HasValue.ValueChangeListener<AbstractField.ComponentValueChangeEvent<NumberField, Double>>) event ->
-                        saveButtonActivation());
+                        saveProfile());
         vl.add(weight);
 
         height = new NumberField("Height");
@@ -75,21 +73,21 @@ class ProfileUI extends HorizontalLayout {
         height.setHasControls(true);
         height.addValueChangeListener(
                 (HasValue.ValueChangeListener<AbstractField.ComponentValueChangeEvent<NumberField, Double>>) event ->
-                        saveButtonActivation());
+                        saveProfile());
         vl.add(height);
 
         goal = new ComboBox<>("Goal", Goal.values());
         goal.setRequired(true);
         goal.addValueChangeListener(
                 (HasValue.ValueChangeListener<AbstractField.ComponentValueChangeEvent<ComboBox<Goal>,
-                        Goal>>) event -> saveButtonActivation());
+                        Goal>>) event -> saveProfile());
         vl.add(goal);
 
         bodyPreference = new ComboBox<>("Body Preference", BodyPreference.values());
         bodyPreference.setRequired(true);
         bodyPreference.addValueChangeListener(
                 (HasValue.ValueChangeListener<AbstractField.ComponentValueChangeEvent<ComboBox<BodyPreference>,
-                        BodyPreference>>) event -> saveButtonActivation());
+                        BodyPreference>>) event -> saveProfile());
         vl.add(bodyPreference);
 
         var gridButtonsLayout = new HorizontalLayout();
@@ -108,7 +106,7 @@ class ProfileUI extends HorizontalLayout {
         vl.add(exerciseGrid);
 
         addExerciseButton.addClickListener((ComponentEventListener<ClickEvent<Button>>) event -> {
-            var dialog = new CreateExerciseDialog(exerciseGrid, userExercises, saveButton);
+            var dialog = new CreateExerciseDialog(exerciseGrid, userExercises, this);
             add(dialog);
             dialog.open();
         });
@@ -118,44 +116,30 @@ class ProfileUI extends HorizontalLayout {
             if (selectedExercise.isPresent()) {
                 userExercises.remove(selectedExercise.get());
                 exerciseGrid.setItems(userExercises);
-                saveButton.setEnabled(true);
+                saveProfile();
             }
         });
-
-        saveButton = new Button("Save");
-        saveButton.setEnabled(false);
-        saveButton.addClickListener((ComponentEventListener<ClickEvent<Button>>) event -> {
-            if (userProfile == null)
-                userProfile = new UserProfile();
-            User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-            userProfile.setUserId(user.getId());
-            userProfile.setMale(gender.getValue().toLowerCase().equals("male"));
-            userProfile.setWeight(weight.getValue().floatValue());
-            userProfile.setHeight(height.getValue().floatValue());
-            userProfile.setAge(age.getValue().shortValue());
-            userProfile.setGoal(goal.getValue());
-            userProfile.setBodyPreference(bodyPreference.getValue());
-            userProfile.setExercises(userExercises);
-            userProfileService.saveUserProfile(userProfile);
-            saveButton.setEnabled(false);
-        });
-        vl.add(saveButton);
-        saveButtonActivation();
 
         loadProfile();
     }
 
-    private void saveButtonActivation() {
+    void saveProfile() {
 
-        if (isProfileLoaded && !saveButton.isEnabled()) {
-            saveButton.setEnabled(true);
+        if (!isProfileLoaded)
             return;
-        }
 
-        if (gender.getValue() != null && goal.getValue() != null && bodyPreference.getValue() != null)
-            saveButton.setEnabled(true);
-        else
-            saveButton.setEnabled(false);
+        if (userProfile == null)
+            userProfile = new UserProfile();
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        userProfile.setUserId(user.getId());
+        userProfile.setMale(gender.getValue().toLowerCase().equals("male"));
+        userProfile.setWeight(weight.getValue().floatValue());
+        userProfile.setHeight(height.getValue().floatValue());
+        userProfile.setBirthDate(birthDate.getValue());
+        userProfile.setGoal(goal.getValue());
+        userProfile.setBodyPreference(bodyPreference.getValue());
+        userProfile.setExercises(userExercises);
+        userProfileService.saveUserProfile(userProfile);
     }
 
     private void loadProfile() {
@@ -166,7 +150,7 @@ class ProfileUI extends HorizontalLayout {
             this.userProfile = userProfile.get();
             gender.setValue(this.userProfile.isMale() ? "Male" : "Female");
             goal.setValue(this.userProfile.getGoal());
-            age.setValue((double) this.userProfile.getAge());
+            birthDate.setValue(this.userProfile.getBirthDate());
             weight.setValue((double) this.userProfile.getWeight());
             height.setValue((double) this.userProfile.getHeight());
             bodyPreference.setValue(this.userProfile.getBodyPreference());
@@ -175,8 +159,7 @@ class ProfileUI extends HorizontalLayout {
             else
                 userExercises = new HashSet<>();
             exerciseGrid.setItems(userExercises);
+            isProfileLoaded = true;
         }
-        isProfileLoaded = true;
-        saveButton.setEnabled(false);
     }
 }
