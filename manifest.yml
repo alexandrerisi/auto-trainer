@@ -1,0 +1,11 @@
+name: auto-trainer-app
+path: target/auto-trainer-0.0.1-SNAPSHOT.jar
+buildpack: https://github.com/cloudfoundry/java-buildpack.git#v4.19.1
+
+#Optional
+memory: 512M
+#services:
+#  - myMongoDB
+
+#env:
+#  JBP_CONFIG_OPEN_JDK_JRE: { jre: { version: 11.+ }, memory_calculator: { stack_threads: 25 } }

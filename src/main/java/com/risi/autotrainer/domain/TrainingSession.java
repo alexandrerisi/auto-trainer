@@ -31,6 +31,10 @@ public class TrainingSession {
         return id.equals(that.id);
     }
 
+    public void removeExerciseSet(ExerciseSet set) {
+        sets.remove(set);
+    }
+
     @Override
     public int hashCode() {
         return Objects.hash(date);

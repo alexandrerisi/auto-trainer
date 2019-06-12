@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -38,20 +39,29 @@ public class TrainingSessionService {
     public List<TrainingSession> getTrainingSessionByExerciseAndDate(Exercise exercise,
                                                                      LocalDate from,
                                                                      LocalDate to,
-                                                                     int limit) {
-        return repository.findByUserIdAndExerciseAndDateBetween(getAuthenticatedUser().getId(),
+                                                                     int limit,
+                                                                     boolean isSingleExerciseActivated) {
+        var training = repository.findByUserIdAndExerciseAndDateBetween(getAuthenticatedUser().getId(),
                 exercise,
                 from.atStartOfDay(),
                 to.atStartOfDay(),
                 limit);
+
+        if (isSingleExerciseActivated)
+            singleExerciseFilter(exercise, training);
+        return training;
     }
 
     public void deleteTrainingSession(LocalDate date) {
         repository.deleteByDate(date.atStartOfDay());
     }
 
-    public List<TrainingSession> getByExercise(Exercise exercise, int limit) {
-        return repository.findByExercise(exercise, limit);
+    public List<TrainingSession> getByExercise(Exercise exercise, int limit, boolean isSingleExerciseActivated) {
+        var training = repository.findByExercise(exercise, limit);
+
+        if (isSingleExerciseActivated)
+            singleExerciseFilter(exercise, training);
+        return training;
     }
 
     public void updateTrainingSession(LocalDate from, List<ExerciseSet> sets) {
@@ -62,6 +72,20 @@ public class TrainingSessionService {
             saveTrainingSession(ts);
         } else {
             // todo throw exception
+        }
+    }
+
+    private void singleExerciseFilter(Exercise exercise, List<TrainingSession> training) {
+        for (TrainingSession session : training) {
+            var filteredSets = new ArrayList<ExerciseSet>();
+            var i = 0;
+            while (i < session.getSets().size()) {
+                var set = session.getSets().get(i);
+                if (set.getExercise().equals(exercise))
+                    filteredSets.add(set);
+                ++i;
+            }
+            session.setSets(filteredSets);
         }
     }
 }

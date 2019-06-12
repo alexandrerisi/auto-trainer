@@ -11,14 +11,15 @@ import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.HasValue;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.ItemClickEvent;
 import com.vaadin.flow.component.html.Label;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.NumberField;
-import com.vaadin.flow.data.renderer.NativeButtonRenderer;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -68,13 +69,15 @@ class PreviousWorkoutsUI extends VerticalLayout {
         to.setLabel("To Day");
 
         Button searchButton = new Button("Search");
+        var singleExerciseCheck = new Checkbox("Only this exercise.");
         searchButton.addClickListener((ComponentEventListener<ClickEvent<Button>>) event -> {
             if (cbExercise.getValue() != null && from.getValue() != null && to.getValue() != null)
                 trainingSessions = trainingSessionService.getTrainingSessionByExerciseAndDate(cbExercise.getValue(),
-                        from.getValue(), to.getValue(), numberResults.getValue().intValue());
+                        from.getValue(), to.getValue(), numberResults.getValue().intValue(),
+                        singleExerciseCheck.getValue());
             else if (cbExercise.getValue() != null && (from.getValue() == null || to.getValue() == null))
                 trainingSessions = trainingSessionService.getByExercise(cbExercise.getValue(),
-                        numberResults.getValue().intValue());
+                        numberResults.getValue().intValue(), singleExerciseCheck.getValue());
             else if (cbExercise.getValue() == null && from.getValue() != null && to.getValue() != null)
                 trainingSessions = trainingSessionService.getTrainingSessionByDate(
                         from.getValue(), to.getValue(), numberResults.getValue().intValue());
@@ -85,12 +88,13 @@ class PreviousWorkoutsUI extends VerticalLayout {
                 loadTrainingSessions(trainingSessions);
         });
 
-        dateSelectorLayout.add(from, to, searchButton);
+        dateSelectorLayout.add(from, to);
 
         var exerciseSelectorLayout = new HorizontalLayout();
         if (profile != null)
             cbExercise = new ComboBox<>("Exercise", profile.getExercises());
-        exerciseSelectorLayout.add(cbExercise);
+        exerciseSelectorLayout.setAlignItems(Alignment.CENTER);
+        exerciseSelectorLayout.add(cbExercise, singleExerciseCheck);
 
         numberResults = new NumberField("Number of training sessions showed.");
         numberResults.setStep(1);
@@ -99,27 +103,26 @@ class PreviousWorkoutsUI extends VerticalLayout {
         numberResults.setValue(5d);
         numberResults.setHasControls(true);
 
-        add(dateSelectorLayout, exerciseSelectorLayout, numberResults, contentLayout);
+        add(dateSelectorLayout, exerciseSelectorLayout, numberResults, searchButton, contentLayout);
     }
 
     private void loadTrainingSessions(List<TrainingSession> sessions) {
 
         var sessionsByDay = createSessionsListByDay(sessions);
-        var dtf = DateTimeFormatter.ISO_LOCAL_DATE;
+        var dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
         for (List<TrainingSession> daySession : sessionsByDay) {
             var layout = new VerticalLayout();
             var titleLayout = new HorizontalLayout();
             var exerciseSets = new ArrayList<ExerciseSet>();
             var grid = new Grid<>(ExerciseSet.class);
-            grid.setWidth("65%");
             var id = daySession.get(0).getDate().format(dtf);
-            var dateInfo = id.split("-");
-            var dateOfTraining = LocalDate.of(Integer.parseInt(dateInfo[0]),
+            var dateInfo = id.split("/");
+            var dateOfTraining = LocalDate.of(Integer.parseInt(dateInfo[2]),
                     Integer.parseInt(dateInfo[1]),
-                    Integer.parseInt(dateInfo[2]));
-            grid.addColumn(new NativeButtonRenderer<>("Edit", clickedItem -> {
-                var dialog = new EditSetDialog(clickedItem,
+                    Integer.parseInt(dateInfo[0]));
+            grid.addItemClickListener((ComponentEventListener<ItemClickEvent<ExerciseSet>>) event -> {
+                var dialog = new EditSetDialog(event.getItem(),
                         trainingSessionService,
                         profile,
                         exerciseSets,
@@ -128,12 +131,7 @@ class PreviousWorkoutsUI extends VerticalLayout {
                         false);
                 contentLayout.add(dialog);
                 dialog.open();
-            }));
-            grid.addColumn(new NativeButtonRenderer<>("Remove", clickedItem -> {
-                exerciseSets.remove(clickedItem);
-                trainingSessionService.updateTrainingSession(dateOfTraining, exerciseSets);
-                grid.setItems(exerciseSets);
-            }));
+            });
             layout.setId(id);
 
             var deleteButton = new Button("Delete");
@@ -180,7 +178,6 @@ class PreviousWorkoutsUI extends VerticalLayout {
             }
             sessionList.add(ts);
         }
-
         return returnList;
     }
 }

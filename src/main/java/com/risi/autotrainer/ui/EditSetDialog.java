@@ -27,8 +27,6 @@ class EditSetDialog extends Dialog {
     private ComboBox<Exercise> exercise;
     private NumberField repetitions;
     private NumberField weight;
-    private NativeButton okButton;
-    private NativeButton cancelButton;
     private TrainingSessionService service;
     private List<ExerciseSet> sets;
     private ExerciseSet selectedSet;
@@ -64,13 +62,15 @@ class EditSetDialog extends Dialog {
         vLayout.add(exercise, repetitions, weight);
 
         var hLayout = new HorizontalLayout();
-        okButton = new NativeButton("Save");
+        var okButton = new NativeButton("Save");
         okButton.addClickListener(
                 (ComponentEventListener<ClickEvent<NativeButton>>) nativeButtonClickEvent -> saveExerciseSet());
-        cancelButton = new NativeButton("Cancel");
+        var cancelButton = new NativeButton("Cancel");
         cancelButton.addClickListener(
                 (ComponentEventListener<ClickEvent<NativeButton>>) nativeButtonClickEvent -> close());
-        hLayout.add(okButton, cancelButton);
+        var removeButton = new NativeButton("Remove");
+        removeButton.addClickListener((ComponentEventListener<ClickEvent<NativeButton>>) event -> removeExerciseSet());
+        hLayout.add(okButton, cancelButton, removeButton);
 
         add(vLayout, hLayout);
 
@@ -92,6 +92,13 @@ class EditSetDialog extends Dialog {
         if (!isNew)
             sets.remove(selectedSet);
         sets.add(exerciseSetToSave);
+        service.updateTrainingSession(date, sets);
+        grid.setItems(sets);
+        close();
+    }
+
+    private void removeExerciseSet() {
+        sets.remove(selectedSet);
         service.updateTrainingSession(date, sets);
         grid.setItems(sets);
         close();
