@@ -9,5 +9,4 @@ public class AutoTrainerApplication {
     public static void main(String[] args) {
         SpringApplication.run(AutoTrainerApplication.class, args);
     }
-
 }

@@ -137,7 +137,7 @@ class PreviousWorkoutsUI extends VerticalLayout {
             });
             layout.setId(id);
 
-            var deleteButton = new Button("Delete");
+            var deleteButton = new Button("Delete Session");
             deleteButton.addClickListener((ComponentEventListener<ClickEvent<Button>>) buttonClickEvent -> {
                 var componentToRemove = contentLayout.getChildren().filter(component ->
                         component.getId().isPresent() && component.getId().get().equals(id)).findFirst();

@@ -68,9 +68,13 @@ class EditSetDialog extends Dialog {
         var cancelButton = new NativeButton("Cancel");
         cancelButton.addClickListener(
                 (ComponentEventListener<ClickEvent<NativeButton>>) nativeButtonClickEvent -> close());
-        var removeButton = new NativeButton("Remove");
-        removeButton.addClickListener((ComponentEventListener<ClickEvent<NativeButton>>) event -> removeExerciseSet());
-        hLayout.add(okButton, cancelButton, removeButton);
+        hLayout.add(okButton, cancelButton);
+        if (!isNew) {
+            var removeButton = new NativeButton("Remove");
+            removeButton.addClickListener(
+                    (ComponentEventListener<ClickEvent<NativeButton>>) event -> removeExerciseSet());
+            hLayout.add(removeButton);
+        }
 
         add(vLayout, hLayout);
 

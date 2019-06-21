@@ -19,14 +19,13 @@ import com.vaadin.flow.theme.material.Material;
 public class MainPage extends Div {
 
     public MainPage(UserProfileService profileService, TrainingSessionService trainingSessionService) {
-        setWidth("50%");
-        var icon = new Tab("");
-        icon.add(new Image("frontend/barbell.png", ""));
+        var iconTab = new Tab("");
+        iconTab.add(new Image("frontend/barbell.png", ""));
         var todayWorkout = new Tab("Suggested Workout for Today");
         var addWorkout = new Tab("Add Workout");
         var previousWorkouts = new Tab("Previous Workouts");
         var profile = new Tab("Profile");
-        var tabs = new Tabs(icon, todayWorkout, addWorkout, previousWorkouts, profile);
+        var tabs = new Tabs(iconTab, todayWorkout, addWorkout, previousWorkouts, profile);
         add(tabs);
 
         var content = new VerticalLayout();
