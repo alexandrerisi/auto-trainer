@@ -12,11 +12,13 @@ import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.data.renderer.NativeButtonRenderer;
+import com.vaadin.flow.router.Route;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+@Route(value = "add-workout", layout = Layout.class)
 class AddWorkoutUI extends VerticalLayout {
 
     private List<ExerciseSet> exerciseSets;

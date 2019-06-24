@@ -64,7 +64,7 @@ public class LoginPage extends HorizontalLayout {
         formLayout.addFormItem(forgotPassword, "");
         add(formLayout);
 
-        var mainUiLink = RouteConfiguration.forApplicationScope().getUrl(MainPage.class);
+        var mainUiLink = RouteConfiguration.forApplicationScope().getUrl(WelcomePage.class);
         var link = new Anchor(mainUiLink, "Log In");
         formLayout.addFormItem(link, "");
 
@@ -75,7 +75,7 @@ public class LoginPage extends HorizontalLayout {
     private void createUser() {
         var user = new User(email.getValue(), passwordField.getValue());
         userService.saveUser(user);
-        UI.getCurrent().getPage().executeJavaScript("window.location.replace('/main');");
+        UI.getCurrent().getPage().executeJavaScript("window.location.replace('/welcome');");
     }
 
     private void enableSave(PasswordField field) {
