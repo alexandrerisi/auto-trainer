@@ -61,6 +61,7 @@ class ProfileUI extends HorizontalLayout {
         weight.setValue(35d);
         weight.setMin(35);
         weight.setMax(250);
+        weight.setStep(0.1);
         weight.setHasControls(true);
         weight.addValueChangeListener(
                 (HasValue.ValueChangeListener<AbstractField.ComponentValueChangeEvent<NumberField, Double>>) event ->

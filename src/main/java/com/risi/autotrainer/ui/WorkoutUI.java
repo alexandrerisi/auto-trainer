@@ -145,6 +145,7 @@ class WorkoutUI extends VerticalLayout {
             var titleLayout = new HorizontalLayout();
             var exerciseSets = new ArrayList<ExerciseSet>();
             var grid = new Grid<>(ExerciseSet.class);
+            grid.setSelectionMode(Grid.SelectionMode.SINGLE);
             var id = daySession.get(0).getDate().format(dtf);
             var dateInfo = id.split("/");
             var dateOfTraining = LocalDate.of(Integer.parseInt(dateInfo[2]),
@@ -222,7 +223,6 @@ class WorkoutUI extends VerticalLayout {
                 exerciseSets.addAll(ts.getSets());
             }
             grid.setItems(exerciseSets);
-            grid.setSelectionMode(Grid.SelectionMode.SINGLE);
         }
     }
 
