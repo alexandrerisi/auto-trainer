@@ -26,12 +26,8 @@ public class Layout extends AbstractAppRouterLayout {
         appLayout.setBranding(img);
 
         var todayWorkout = new AppLayoutMenuItem("Suggested Workout for Today");
-        var addWorkout = new AppLayoutMenuItem("Add Workout", "add-workout");
-        var previousWorkouts = new AppLayoutMenuItem("Previous Workouts", "previous-workout");
+        var workouts = new AppLayoutMenuItem("Workouts", "workout");
         var profile = new AppLayoutMenuItem("Profile", "profile");
-        menu.addMenuItems(todayWorkout,
-                addWorkout,
-                previousWorkouts,
-                profile);
+        menu.addMenuItems(todayWorkout, workouts, profile);
     }
 }

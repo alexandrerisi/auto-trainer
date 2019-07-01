@@ -26,7 +26,7 @@ public class TrainingSessionService {
     public List<TrainingSession> getTrainingSessionByDate(LocalDate from, LocalDate to, int limit) {
         return repository.findByDateBetween(getAuthenticatedUser().getId(),
                 from.atStartOfDay(),
-                to.atStartOfDay(),
+                to.atStartOfDay().plusHours(2),
                 limit);
     }
 
@@ -44,7 +44,7 @@ public class TrainingSessionService {
         var training = repository.findByUserIdAndExerciseAndDateBetween(getAuthenticatedUser().getId(),
                 exercise,
                 from.atStartOfDay(),
-                to.atStartOfDay(),
+                to.atStartOfDay().plusHours(2),
                 limit);
 
         if (isSingleExerciseActivated)
@@ -53,7 +53,7 @@ public class TrainingSessionService {
     }
 
     public void deleteTrainingSession(LocalDate date) {
-        repository.deleteByDate(date.atStartOfDay());
+        repository.deleteByDate(date.atStartOfDay().plusHours(1));
     }
 
     public List<TrainingSession> getByExercise(Exercise exercise, int limit, boolean isSingleExerciseActivated) {

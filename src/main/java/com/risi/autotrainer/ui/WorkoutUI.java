@@ -6,16 +6,15 @@ import com.risi.autotrainer.domain.TrainingSession;
 import com.risi.autotrainer.domain.UserProfile;
 import com.risi.autotrainer.service.TrainingSessionService;
 import com.risi.autotrainer.service.UserProfileService;
-import com.vaadin.flow.component.AbstractField;
-import com.vaadin.flow.component.ClickEvent;
-import com.vaadin.flow.component.ComponentEventListener;
-import com.vaadin.flow.component.HasValue;
+import com.vaadin.flow.component.*;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.datepicker.DatePicker;
+import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.ItemClickEvent;
+import com.vaadin.flow.component.html.Hr;
 import com.vaadin.flow.component.html.Label;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -29,8 +28,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-@Route(value = "previous-workout", layout = Layout.class)
-class PreviousWorkoutsUI extends VerticalLayout {
+@Route(value = "workout", layout = Layout.class)
+class WorkoutUI extends VerticalLayout {
 
     private DatePicker to;
     private DatePicker from;
@@ -41,12 +40,22 @@ class PreviousWorkoutsUI extends VerticalLayout {
     private UserProfile profile;
     private NumberField numberResults;
 
-    PreviousWorkoutsUI(TrainingSessionService trainingSessionService, UserProfileService profileService) {
+    WorkoutUI(TrainingSessionService trainingSessionService, UserProfileService profileService) {
         var profile = profileService.getUserProfile().isPresent() ? profileService.getUserProfile().get() : null;
         this.trainingSessionService = trainingSessionService;
         this.profile = profile;
-        HorizontalLayout dateSelectorLayout = new HorizontalLayout();
-        add(dateSelectorLayout);
+
+        var addWorkoutLayout = new HorizontalLayout();
+        var createWorkoutDatePicker = new DatePicker();
+        createWorkoutDatePicker.setValue(LocalDate.now());
+        createWorkoutDatePicker.setMax(LocalDate.now());
+        var createWorkoutButton = new Button("Create Workout");
+        addWorkoutLayout.add(createWorkoutDatePicker, createWorkoutButton);
+
+        var dateSelectorLayout = new HorizontalLayout();
+        var firstHr = new Hr();
+        firstHr.setSizeFull();
+        add(addWorkoutLayout, firstHr,dateSelectorLayout);
 
         from = new DatePicker();
         from.setMin(LocalDate.of(2019, 2, 1));
@@ -88,6 +97,21 @@ class PreviousWorkoutsUI extends VerticalLayout {
             contentLayout.removeAll();
             if (trainingSessions != null)
                 loadTrainingSessions(trainingSessions);
+        });
+
+        createWorkoutButton.addClickListener((ComponentEventListener<ClickEvent<Button>>) buttonClickEvent -> {
+            if (createWorkoutDatePicker.getValue() != null) {
+                var session = trainingSessionService.getSingleTrainingSessionByDate(createWorkoutDatePicker.getValue());
+                if (session.isEmpty()) {
+                    var ts = new TrainingSession();
+                    ts.setDate(createWorkoutDatePicker.getValue());
+                    trainingSessionService.saveTrainingSession(ts);
+                }
+                cbExercise.setValue(null);
+                from.setValue(createWorkoutDatePicker.getValue().minusDays(1));
+                to.setValue(createWorkoutDatePicker.getValue());
+                searchButton.click();
+            }
         });
 
         dateSelectorLayout.add(from, to);
@@ -141,24 +165,56 @@ class PreviousWorkoutsUI extends VerticalLayout {
 
             var deleteButton = new Button("Delete Session");
             deleteButton.addClickListener((ComponentEventListener<ClickEvent<Button>>) buttonClickEvent -> {
-                var componentToRemove = contentLayout.getChildren().filter(component ->
-                        component.getId().isPresent() && component.getId().get().equals(id)).findFirst();
-                componentToRemove.ifPresent(component -> {
-                    trainingSessionService.deleteTrainingSession(dateOfTraining);
-                    contentLayout.remove(component);
-                });
+                class DeleteConfirmation extends Dialog {
+                    private Label label = new Label("Are you sure you want to delete the session?");
+                    private Button no = new Button("No");
+                    private Button yes = new Button("Yes");
+
+                    private DeleteConfirmation() {
+                        var vertical = new VerticalLayout();
+
+                        yes.addClickListener((ComponentEventListener<ClickEvent<Button>>) buttonClickEvent1 -> {
+                            var componentToRemove = contentLayout.getChildren().filter(component ->
+                                    component.getId().isPresent() && component.getId().get().equals(id)).findFirst();
+                            componentToRemove.ifPresent(component -> {
+                                trainingSessionService.deleteTrainingSession(dateOfTraining);
+                                contentLayout.remove(component);
+                            });
+                            close();
+                        });
+
+                        no.addClickListener((ComponentEventListener<ClickEvent<Button>>) buttonClickEvent12 -> close());
+
+                        var horizontal = new HorizontalLayout();
+                        horizontal.add(no, yes);
+                        vertical.add(label, horizontal);
+                        add(vertical);
+                    }
+                }
+                var dialog = new DeleteConfirmation();
+                UI.getCurrent().add(dialog);
+                dialog.open();
             });
 
             var addSet = new Button("Add Set");
             addSet.addClickListener((ComponentEventListener<ClickEvent<Button>>) buttonClickEvent -> {
-                var dialog = new EditSetDialog(exerciseSets.get(exerciseSets.size() - 1),
-                        trainingSessionService, profile, exerciseSets, dateOfTraining, grid, true);
+                ExerciseSet set;
+                if (exerciseSets.size() > 0)
+                    set = exerciseSets.get(exerciseSets.size() - 1);
+                else
+                    set = new ExerciseSet();
+                var dialog = new EditSetDialog(set, trainingSessionService, profile, exerciseSets, dateOfTraining,
+                        grid, true);
                 contentLayout.add(dialog);
                 dialog.open();
             });
 
             titleLayout.add(new Label(id), deleteButton, addSet);
-            layout.add(titleLayout, grid);
+
+            var hr = new Hr();
+            hr.setSizeFull();
+
+            layout.add(titleLayout, grid, hr);
             contentLayout.add(layout);
 
             for (TrainingSession ts : daySession) {
@@ -166,6 +222,7 @@ class PreviousWorkoutsUI extends VerticalLayout {
                 exerciseSets.addAll(ts.getSets());
             }
             grid.setItems(exerciseSets);
+            grid.setSelectionMode(Grid.SelectionMode.SINGLE);
         }
     }
 
@@ -186,3 +243,5 @@ class PreviousWorkoutsUI extends VerticalLayout {
         return returnList;
     }
 }
+
+
