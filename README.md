@@ -5,6 +5,7 @@ Technologies:
 - Java 11
 - SpringBoot
 - SpringData
+- Spring Security
 - Vaadin 13
 - Lombok
 - MongoDB
