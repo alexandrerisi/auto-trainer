@@ -81,7 +81,7 @@ public class TrainingSessionService {
             var i = 0;
             while (i < session.getSets().size()) {
                 var set = session.getSets().get(i);
-                if (set.getExercise().equals(exercise))
+                if (set.getExercise() != null && set.getExercise().equals(exercise))
                     filteredSets.add(set);
                 ++i;
             }
